@@ -407,6 +407,8 @@
         <item>ROM GBA</item>
         <item>Rumble Pak</item>
         <item>Espansione di memoria</item>
+        <item>Motion Pak (Homebrew)</item>
+        <item>Motion Pak (Retail)</item>
     </string-array>
 
     <string-array name="console_type_options">
@@ -427,6 +429,7 @@
     <string-array name="video_renderer_options">
         <item>Software</item>
         <item>OpenGL</item>
+        <item>Compute</item>
     </string-array>
 
     <string-array name="video_internal_resolution_options">

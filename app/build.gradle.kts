@@ -1,4 +1,4 @@
-import com.android.build.gradle.internal.cxx.configure.gradleLocalProperties
+import java.util.Properties
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 
 plugins {
@@ -8,12 +8,16 @@ plugins {
     alias(libs.plugins.kotlin.parcelize)
     alias(libs.plugins.kotlin.serialization)
     alias(libs.plugins.ksp)
+    alias(libs.plugins.room)
 }
 
 android {
     signingConfigs {
         create("release") {
-            val props = gradleLocalProperties(rootDir, providers)
+            val props = Properties().apply {
+                val file = rootProject.file("local.properties")
+                if (file.exists()) load(file.inputStream())
+            }
             (props["MELONDS_KEYSTORE"] as String?)?.let { storeFile = file(it) }
             storePassword = props["MELONDS_KEYSTORE_PASSWORD"] as String? ?: ""
             keyAlias = props["MELONDS_KEY_ALIAS"] as String? ?: ""
@@ -32,14 +36,13 @@ android {
         versionName = AppConfig.versionName
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         ndk {
-            abiFilters.addAll(listOf("armeabi-v7a", "arm64-v8a", "x86_64"))
+            abiFilters.addAll(listOf("arm64-v8a", "x86_64"))
         }
         externalNativeBuild {
             cmake {
                 cppFlags("-std=c++17 -Wno-write-strings")
             }
         }
-        vectorDrawables.useSupportLibrary = true
     }
     buildFeatures {
         viewBinding = true
@@ -48,6 +51,7 @@ android {
     buildTypes {
         getByName("release") {
             isMinifyEnabled = true
+            isShrinkResources = true
             proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
             signingConfig = signingConfigs.getByName("release")
         }
@@ -56,8 +60,7 @@ android {
         }
     }
 
-    flavorDimensions.add("version")
-    flavorDimensions.add("build")
+    flavorDimensions += listOf("version", "build")
     productFlavors {
         create("playStore") {
             dimension = "version"
@@ -67,6 +70,10 @@ android {
             dimension = "version"
             isDefault = true
             versionNameSuffix = " GH"
+            ndk {
+                // Add 32 bit support only on GitHub releases
+                abiFilters.add("armeabi-v7a")
+            }
         }
 
         create("prod") {
@@ -100,15 +107,13 @@ kotlin {
         jvmTarget = JvmTarget.JVM_21
         freeCompilerArgs.add("-opt-in=kotlin.ExperimentalUnsignedTypes")
     }
+}
 
-    ksp {
-        arg("room.schemaLocation", "$projectDir/schemas")
-    }
+room {
+    schemaDirectory("$projectDir/schemas")
 }
 
 dependencies {
-    val gitHubImplementation by configurations
-
     implementation(projects.masterswitch)
     implementation(projects.rcheevosApi)
     implementation(projects.common)
@@ -133,14 +138,13 @@ dependencies {
     implementation(libs.androidx.room.rxjava)
     implementation(libs.androidx.splashscreen)
     implementation(libs.androidx.startup)
-    implementation(libs.androidx.swiperefreshlayout)
     implementation(libs.androidx.window)
     implementation(libs.androidx.work)
     implementation(libs.android.material)
 
     implementation(platform(libs.compose.bom))
-    implementation(libs.accompanist.systemuicontroller)
     implementation(libs.compose.foundation)
+    implementation(libs.compose.markdown)
     implementation(libs.compose.material)
     implementation(libs.compose.material3)
     implementation(libs.compose.material.icons)
@@ -156,16 +160,11 @@ dependencies {
     implementation(libs.kotlin.serialization)
     implementation(libs.kotlinx.coroutines.rx)
     implementation(libs.picasso)
-    implementation(libs.markwon)
-    implementation(libs.markwon.imagepicasso)
-    implementation(libs.markwon.linkify)
-    implementation(libs.rxjava)
-    implementation(libs.rxjava.android)
     implementation(libs.commons.compress)
     implementation(libs.xz)
 
-    gitHubImplementation(libs.retrofit)
-    gitHubImplementation(libs.retrofit.converter.kotlinx)
+    "gitHubImplementation"(libs.retrofit)
+    "gitHubImplementation"(libs.retrofit.converter.kotlinx)
 
     ksp(libs.hilt.compiler)
     ksp(libs.hilt.compiler.android)

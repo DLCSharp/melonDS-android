@@ -16,6 +16,15 @@ sealed class LaunchArgs {
     data class RomPath(val path: String) : LaunchArgs()
     data class Firmware(val consoleType: ConsoleType) : LaunchArgs()
 
+    fun matchesRunningState(state: EmulatorState): Boolean {
+        return when (this) {
+            is RomObject -> state is EmulatorState.RunningRom && rom.uri == state.rom.uri
+            is RomUri -> state is EmulatorState.RunningRom && uri == state.rom.uri
+            is RomPath -> state is EmulatorState.RunningRom && state.rom.uri.path == path
+            is Firmware -> state is EmulatorState.RunningFirmware && consoleType == state.console
+        }
+    }
+
     companion object {
         fun fromSavedStateHandle(savedStateHandle: SavedStateHandle): LaunchArgs? {
             return if (savedStateHandle.get<Boolean>(EmulatorActivity.KEY_BOOT_FIRMWARE_ONLY) == true) {
@@ -31,7 +40,12 @@ sealed class LaunchArgs {
                 if (romParcelable != null) {
                     RomObject(romParcelable.rom)
                 } else {
-                    val uri = savedStateHandle.get<String>(EmulatorActivity.KEY_URI)?.toUri()
+                    val uri = when (val uriEntry = savedStateHandle.get<Any>(EmulatorActivity.KEY_URI)) {
+                        is String -> uriEntry.toUri()
+                        is Uri -> uriEntry
+                        else -> null
+                    }
+
                     if (uri != null) {
                         RomUri(uri)
                     } else {
@@ -69,8 +83,14 @@ sealed class LaunchArgs {
                         RomPath(romPath)
                     }
                     extras?.containsKey(EmulatorActivity.KEY_URI) == true -> {
-                        val romUri = extras.getString(EmulatorActivity.KEY_URI)!!
-                        RomUri(romUri.toUri())
+                        @Suppress("DEPRECATION")
+                        val uri = when (val uriEntry = extras.get(EmulatorActivity.KEY_URI)) {
+                            is String -> uriEntry.toUri()
+                            is Uri -> uriEntry
+                            else -> null
+                        }
+
+                        uri?.let { RomUri(it) }
                     }
                     else -> null
                 }

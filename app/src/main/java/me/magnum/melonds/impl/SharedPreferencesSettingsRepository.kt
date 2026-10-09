@@ -38,6 +38,7 @@ import me.magnum.melonds.domain.model.FpsCounterPosition
 import me.magnum.melonds.domain.model.MacAddress
 import me.magnum.melonds.domain.model.MicSource
 import me.magnum.melonds.domain.model.RendererConfiguration
+import me.magnum.melonds.domain.model.rewind.RewindWindowPosition
 import me.magnum.melonds.domain.model.RomIconFiltering
 import me.magnum.melonds.domain.model.SaveStateLocation
 import me.magnum.melonds.domain.model.SizeUnit
@@ -48,6 +49,7 @@ import me.magnum.melonds.domain.model.VideoRenderer
 import me.magnum.melonds.domain.model.camera.DSiCameraSourceType
 import me.magnum.melonds.domain.model.input.SoftInputBehaviour
 import me.magnum.melonds.domain.model.layout.LayoutConfiguration
+import me.magnum.melonds.domain.model.render.RenderStrategy
 import me.magnum.melonds.domain.model.rom.Rom
 import me.magnum.melonds.domain.repositories.SettingsRepository
 import me.magnum.melonds.impl.dtos.input.ControllerConfigurationDto
@@ -98,9 +100,10 @@ class SharedPreferencesSettingsRepository(
             getVideoRenderer(),
             getVideoFiltering(),
             isThreadedRenderingEnabled(),
+            getRenderStrategy(),
             getVideoInternalResolutionScaling(),
-        ) { renderer, filtering, threadedRenderingEnabled, resolutionScaling ->
-            RendererConfiguration(renderer, filtering, threadedRenderingEnabled, resolutionScaling)
+        ) { renderer, filtering, threadedRenderingEnabled, renderStrategy, resolutionScaling ->
+            RendererConfiguration(renderer, filtering, threadedRenderingEnabled, renderStrategy, resolutionScaling)
         }.conflate().shareIn(preferencesCoroutineScope, SharingStarted.Lazily, replay = 1)
     }
 
@@ -143,30 +146,30 @@ class SharedPreferencesSettingsRepository(
         }
 
         return EmulatorConfiguration(
-            useCustomBios(),
-            showBootScreen(),
-            dsDirDocument?.findFile("bios7.bin")?.uri,
-            dsDirDocument?.findFile("bios9.bin")?.uri,
-            dsDirDocument?.findFile("firmware.bin")?.uri,
-            dsiDirDocument?.findFile("bios7.bin")?.uri,
-            dsiDirDocument?.findFile("bios9.bin")?.uri,
-            dsiDirDocument?.findFile("firmware.bin")?.uri,
-            dsiDirDocument?.findFile("nand.bin")?.uri,
-            context.filesDir.absolutePath,
-            getFastForwardSpeedMultiplier(),
-            isRewindEnabled(),
-            getRewindPeriod(),
-            getRewindWindow(),
-            isJitEnabled(),
-            consoleType,
-            isSoundEnabled(),
-            getAudioInterpolation(),
-            getAudioBitrate(),
-            getVolume(),
-            AudioLatency.LOW,
-            getMicSource(),
-            getFirmwareConfiguration(),
-            renderConfigurationFlow.first(),
+            useCustomBios = useCustomBios(),
+            showBootScreen = showBootScreen(),
+            dsBios7Uri = dsDirDocument?.findFile("bios7.bin")?.uri,
+            dsBios9Uri = dsDirDocument?.findFile("bios9.bin")?.uri,
+            dsFirmwareUri = dsDirDocument?.findFile("firmware.bin")?.uri,
+            dsiBios7Uri = dsiDirDocument?.findFile("bios7.bin")?.uri,
+            dsiBios9Uri = dsiDirDocument?.findFile("bios9.bin")?.uri,
+            dsiFirmwareUri = dsiDirDocument?.findFile("firmware.bin")?.uri,
+            dsiNandUri = dsiDirDocument?.findFile("nand.bin")?.uri,
+            internalDirectory = context.filesDir.absolutePath,
+            fastForwardSpeedMultiplier = getFastForwardSpeedMultiplier(),
+            rewindEnabled = isRewindEnabled(),
+            rewindPeriodSeconds = getRewindPeriod(),
+            rewindWindowSeconds = getRewindWindow(),
+            useJit = isJitEnabled(),
+            consoleType = consoleType,
+            soundEnabled = isSoundEnabled(),
+            audioInterpolation = getAudioInterpolation(),
+            audioBitrate = getAudioBitrate(),
+            volume = getVolume(),
+            audioLatency = AudioLatency.LOW,
+            micSource = getMicSource(),
+            firmwareConfiguration = getFirmwareConfiguration(),
+            rendererConfiguration = renderConfigurationFlow.first(),
         )
     }
 
@@ -182,6 +185,11 @@ class SharedPreferencesSettingsRepository(
 
     override fun isRewindEnabled(): Boolean {
         return preferences.getBoolean("enable_rewind", false)
+    }
+
+    override fun getRewindWindowPosition(): RewindWindowPosition {
+        val positionPreference = preferences.getString("rewind_window_position", "bottom")!!
+        return RewindWindowPosition.valueOf(positionPreference.uppercase())
     }
 
     override fun isSustainedPerformanceModeEnabled(): Boolean {
@@ -302,6 +310,16 @@ class SharedPreferencesSettingsRepository(
     override fun isThreadedRenderingEnabled(): Flow<Boolean> {
         return getOrCreatePreferenceSharedFlow("enable_threaded_rendering") {
             preferences.getBoolean("enable_threaded_rendering", true)
+        }
+    }
+
+    override fun getRenderStrategy(): Flow<RenderStrategy> {
+        return getOrCreatePreferenceSharedFlow("front_rendering") {
+            if (preferences.getBoolean("front_rendering", false)) {
+                RenderStrategy.FRONT_BUFFER_RENDERING
+            } else {
+                RenderStrategy.BACK_BUFFER_RENDERING
+            }
         }
     }
 

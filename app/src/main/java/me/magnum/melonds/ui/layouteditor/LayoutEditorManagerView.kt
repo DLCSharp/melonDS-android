@@ -12,11 +12,16 @@ import android.widget.FrameLayout
 import android.widget.SeekBar
 import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.text.input.KeyboardCapitalization
+import androidx.core.view.ViewCompat
+import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.isGone
 import androidx.core.view.isInvisible
 import androidx.core.view.isVisible
@@ -189,6 +194,24 @@ class LayoutEditorManagerView(
         }
         addView(binding.root, LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.MATCH_PARENT))
         addView(composeView, LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.MATCH_PARENT))
+
+        ViewCompat.setOnApplyWindowInsetsListener(binding.root) { _, windowInsets ->
+            val insets = windowInsets.getInsets(WindowInsetsCompat.Type.displayCutout())
+            binding.layoutScalingContainer.setPadding(
+                insets.left,
+                0,
+                insets.right,
+                insets.bottom,
+            )
+            binding.layoutControls.setPadding(
+                insets.left,
+                0,
+                insets.right,
+                insets.bottom,
+            )
+
+            WindowInsetsCompat.CONSUMED
+        }
 
         binding.buttonAddButton.setOnClickListener {
             openButtonsMenu()
@@ -453,6 +476,7 @@ class LayoutEditorManagerView(
                 viewModel.setCurrentLayoutName(it)
                 listener?.onSaveLayoutAndExit()
             },
+            keyboardOptions = KeyboardOptions(capitalization = KeyboardCapitalization.Sentences, imeAction = ImeAction.Done),
         )
     }
 

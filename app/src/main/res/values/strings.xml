@@ -11,6 +11,7 @@
     <string name="delete">Delete</string>
     <string name="edit">Edit</string>
     <string name="clear">Clear</string>
+    <string name="copy">Copy</string>
     <string name="none">None</string>
     <string name="options">Options</string>
     <string name="preview">Preview</string>
@@ -173,6 +174,7 @@
     <string name="rewind_length">Rewind length</string>
     <string name="rewind_max_memory_usage">Max. memory usage: %1$s</string>
     <string name="rewind_memory_usage_above_recommended_limit">Memory usage above recommended limit</string>
+    <string name="rewind_window_position">Rewind window position</string>
     <string name="sustained_performance_mode">Sustained performance mode</string>
     <string name="sustained_performance_mode_summary">When enabled, peak performance will be lower but thermal throttling will be less pronounced.</string>
     <string name="check_for_updates">Check for updates</string>
@@ -264,7 +266,7 @@
     <string name="enable_rich_presence">Enable rich presence</string>
     <string name="rich_presence_summary">Allows other RetroAchievement users to see what you are playing</string>
     <string name="hardcore_mode">Hardcore mode</string>
-    <string name="hardcore_mode_summary">Earn double the amount of points but you cannot use save states, cheats or slow-motion while playing</string>
+    <string name="hardcore_mode_summary">Allows hardcore achievements to be earned. Cheats, save states, slow-motion, and rewind are disabled</string>
     <string name="show_active_challenge_indicators">Show active challenge indicators</string>
     <string name="show_active_challenge_indicators_summary">Shows on-screen indicators while certain achievements can be earned</string>
     <string name="show_progress_indicators">Show progress indicators</string>
@@ -277,7 +279,7 @@
     <string name="enable_cheats">Enable cheats</string>
     <string name="cheats_database">Cheats database (XML format)</string>
     <string name="import_cheats">Import cheats</string>
-    <string name="import_cheats_summary">Import cheats from database files to make them available. Only XML databases are supported for now. Any previously imported cheat will be deleted.</string>
+    <string name="import_cheats_summary">Import cheats from database files to make them available. XML and usrcheat.dat databases are supported. Any previously imported cheat will be deleted.</string>
     <string name="rom_shortcut">ROM shortcut</string>
 
     <string name="firmware_nickname">Nickname</string>
@@ -411,6 +413,7 @@
     <string name="login">Login</string>
     <string name="retroachievements_login_summary">Login with RetroAchievements to unlock achievements while playing!</string>
     <string name="retroachievements_login_status">Logged in as %1$s</string>
+    <string name="retroachievements_login_expired_status">Your RetroAchievements login expired. Click to log in again</string>
     <string name="retroachievements_logout">Logout</string>
     <string name="retroachievements_logout_confirmation">Are you sure you want to logout from RetroAchievements? You won\'t be able to unlock achievements while playing.</string>
     <string name="retro_achievements_login_error">There was a problem when trying to login. Make sure that your username and password are correct, and that you are connected to the internet</string>
@@ -441,6 +444,8 @@
     <string name="game_has_no_achievements">This game has no achievements</string>
     <string name="achievements_failed_load">Failed to load achievements!</string>
     <string name="achievements_failed_load_tip">Make sure you are Online</string>
+    <string name="achievements_login_expired">RetroAchievements login expired!</string>
+    <string name="achievements_login_expired_tip">Log in again to enable RetroAchievements</string>
     <string name="achievement_unlocked">Achievement unlocked!</string>
     <string name="achievement_missable">Missable</string>
     <string name="achievement_missable_description">This achievement can be missed during a playthrough</string>
@@ -506,6 +511,8 @@
         <item>GBA ROM</item>
         <item>Rumble Pak</item>
         <item>Memory expansion</item>
+        <item>Motion Pak (Homebrew)</item>
+        <item>Motion Pak (Retail)</item>
     </string-array>
 
     <string-array name="console_type_options">
@@ -526,6 +533,7 @@
     <string-array name="video_renderer_options">
         <item>Software</item>
         <item>OpenGL</item>
+        <item>Compute</item>
     </string-array>
 
     <string-array name="video_internal_resolution_options">
@@ -619,4 +627,28 @@
         <item>Fit bottom</item>
         <item>Fit right</item>
     </string-array>
+
+    <string-array name="rewind_window_position_options">
+        <item>Top</item>
+        <item>Bottom</item>
+    </string-array>
+
+    <!-- Multiplayer -->
+    <string name="connection_wifi_aware">Wi-Fi Aware</string>
+    <string name="connection_wifi_direct">Wi-Fi Direct</string>
+    <string name="no_connection_methods_available">No connection methods available on this device</string>
+    <string name="multiplayer_role_title">Multiplayer</string>
+    <string name="multiplayer_role_host">Host</string>
+    <string name="multiplayer_role_join">Join</string>
+    <string name="multiplayer_connection_method_title">Connection Method</string>
+    <string name="multiplayer_discovered_peers_title">Available Sessions</string>
+    <string name="multiplayer_searching">Searching…</string>
+    <string name="multiplayer_connecting">Connecting…</string>
+    <string name="multiplayer_starting">Starting session…</string>
+    <string name="multiplayer_discovering">Discovering peers…</string>
+    <string name="multiplayer_connected">Connected</string>
+    <string name="multiplayer_error_connection_failed">Connection failed</string>
+    <string name="multiplayer_error_discovery_failed">Discovery failed</string>
+    <string name="multiplayer_error_lan_init_failed">Failed to initialize LAN session</string>
+    <string name="multiplayer_error_permission_denied">Required permissions not granted</string>
 </resources>

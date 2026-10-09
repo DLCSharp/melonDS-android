@@ -19,6 +19,7 @@ import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.ContentAlpha
 import androidx.compose.material.Divider
 import androidx.compose.material.DropdownMenu
@@ -61,15 +62,19 @@ import androidx.compose.ui.input.key.type
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalResources
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.google.accompanist.systemuicontroller.rememberSystemUiController
 import kotlinx.coroutines.channels.BufferOverflow
 import kotlinx.coroutines.flow.MutableSharedFlow
 import me.magnum.melonds.R
 import me.magnum.melonds.domain.model.layout.LayoutConfiguration
 import me.magnum.melonds.ui.common.MelonPreviewSet
+import me.magnum.melonds.ui.common.component.dialog.TextInputDialog
+import me.magnum.melonds.ui.common.component.dialog.TextInputDialogState
+import me.magnum.melonds.ui.common.component.dialog.rememberTextInputDialogState
 import me.magnum.melonds.ui.layouteditor.LayoutEditorActivity
 import me.magnum.melonds.ui.layouts.viewmodel.BaseLayoutsViewModel
 import me.magnum.melonds.ui.theme.MelonTheme
@@ -81,14 +86,11 @@ fun LayoutsScreen(
     onNavigateBack: () -> Unit,
 ) {
     val context = LocalContext.current
-    val systemUiController = rememberSystemUiController()
 
     val layouts by viewModel.layouts.collectAsStateWithLifecycle()
     val selectedLayout by viewModel.selectedLayoutId.collectAsStateWithLifecycle()
     val layoutEditorLauncher = rememberLauncherForActivityResult(ActivityResultContracts.StartActivityForResult()) { }
-
-    systemUiController.setStatusBarColor(MaterialTheme.colors.primaryVariant)
-    systemUiController.isNavigationBarContrastEnforced = false
+    val showCopyLayoutDialogState = rememberTextInputDialogState()
 
     LayoutsScreenContent(
         layouts = layouts ?: emptyList(),
@@ -103,9 +105,22 @@ fun LayoutsScreen(
             intent.putExtra(LayoutEditorActivity.KEY_LAYOUT_ID, layoutId.toString())
             layoutEditorLauncher.launch(intent)
         },
+        onCopyLayout = { layout ->
+            showCopyLayoutDialogState.show(
+                initialText = layout.name.orEmpty(),
+                onConfirm = { viewModel.copyLayout(layout, it) },
+                keyboardOptions = KeyboardOptions(capitalization = KeyboardCapitalization.Sentences, imeAction = ImeAction.Done),
+                highlightInitialText = true,
+            )
+        },
         onDeleteLayout = viewModel::deleteLayout,
         onUndoDelete = viewModel::addLayout,
         onBackClick = onNavigateBack,
+    )
+
+    TextInputDialog(
+        title = stringResource(R.string.layout_name),
+        dialogState = showCopyLayoutDialogState,
     )
 }
 
@@ -116,6 +131,7 @@ private fun LayoutsScreenContent(
     onLayoutSelected: (UUID?) -> Unit,
     onCreateLayout: () -> Unit,
     onEditLayout: (UUID) -> Unit,
+    onCopyLayout: (LayoutConfiguration) -> Unit,
     onDeleteLayout: (LayoutConfiguration) -> Unit,
     onUndoDelete: (LayoutConfiguration) -> Unit,
     onBackClick: () -> Unit,
@@ -179,6 +195,7 @@ private fun LayoutsScreenContent(
                     isSelected = layout.id == selectedLayoutId,
                     onLayoutSelected = { onLayoutSelected(layout.id) },
                     onEditLayout = { layout.id?.let(onEditLayout) },
+                    onCopyLayout = { onCopyLayout(layout) },
                     onDeleteLayout = {
                         deleteLayoutEvent.tryEmit(layout)
                         onDeleteLayout(layout)
@@ -209,6 +226,7 @@ private fun LayoutItem(
     isSelected: Boolean,
     onLayoutSelected: () -> Unit,
     onEditLayout: () -> Unit,
+    onCopyLayout: () -> Unit,
     onDeleteLayout: () -> Unit,
 ) {
     var showMenu by remember { mutableStateOf(false) }
@@ -281,6 +299,15 @@ private fun LayoutItem(
                     DropdownMenuItem(
                         onClick = {
                             showMenu = false
+                            onCopyLayout()
+                        },
+                    ) {
+                        Text(stringResource(R.string.copy))
+                    }
+
+                    DropdownMenuItem(
+                        onClick = {
+                            showMenu = false
                             onDeleteLayout()
                         },
                     ) {
@@ -325,6 +352,7 @@ private fun PreviewLayoutsScreen() {
             onLayoutSelected = { },
             onCreateLayout = { },
             onEditLayout = { },
+            onCopyLayout = { },
             onDeleteLayout = { },
             onUndoDelete = { },
             onBackClick = { }

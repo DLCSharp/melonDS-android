@@ -26,7 +26,7 @@ import androidx.compose.material.Text
 import androidx.compose.material.TopAppBar
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
-import androidx.compose.material3.adaptive.currentWindowAdaptiveInfo
+import androidx.compose.material3.adaptive.currentWindowAdaptiveInfoV2
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.derivedStateOf
@@ -49,6 +49,8 @@ import me.magnum.melonds.domain.model.rom.config.RomConfig
 import me.magnum.melonds.ui.common.FullScreen
 import me.magnum.melonds.ui.common.component.dialog.BaseDialog
 import me.magnum.melonds.ui.common.component.dialog.DialogButton
+import me.magnum.melonds.ui.common.component.romlist.DefaultRomItemPadding
+import me.magnum.melonds.ui.common.component.romlist.RomItem
 import me.magnum.melonds.ui.dsiwaremanager.DSiWareRomListViewModel
 import me.magnum.melonds.ui.dsiwaremanager.model.DSiWareMangerRomListUiState
 import me.magnum.melonds.ui.romlist.RomIcon
@@ -77,7 +79,7 @@ private fun DSiWareRomListDialogImpl(
     onRomSelected: (Rom) -> Unit,
     retrieveRomIcon: suspend (Rom) -> RomIcon,
 ) {
-    val windowSizeClass = currentWindowAdaptiveInfo(true).windowSizeClass
+    val windowSizeClass = currentWindowAdaptiveInfoV2().windowSizeClass
     val isLargeScreen = windowSizeClass.isWidthAtLeastBreakpoint(WindowSizeClass.WIDTH_DP_EXPANDED_LOWER_BOUND)
     if (isLargeScreen) {
         PopupDialog(

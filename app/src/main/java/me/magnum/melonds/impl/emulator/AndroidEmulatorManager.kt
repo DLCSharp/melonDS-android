@@ -8,7 +8,6 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.isActive
-import kotlinx.coroutines.rx2.await
 import kotlinx.coroutines.withContext
 import me.magnum.melonds.MelonEmulator
 import me.magnum.melonds.common.PermissionHandler
@@ -29,9 +28,7 @@ import me.magnum.melonds.domain.model.rom.config.RuntimeConsoleType
 import me.magnum.melonds.domain.model.rom.config.RuntimeEnum
 import me.magnum.melonds.domain.repositories.SettingsRepository
 import me.magnum.melonds.domain.services.EmulatorManager
-import me.magnum.melonds.extensions.extension
 import me.magnum.melonds.impl.camera.DSiCameraSourceMultiplexer
-import me.magnum.melonds.ui.emulator.exceptions.RomLoadException
 import me.magnum.melonds.ui.emulator.rewind.model.RewindSaveState
 import me.magnum.melonds.ui.emulator.rewind.model.RewindWindow
 
@@ -91,7 +88,7 @@ class AndroidEmulatorManager(
         return withContext(Dispatchers.IO) {
             val fileRomDocument = DocumentFile.fromSingleUri(context, rom.uri) ?: return@withContext RomLaunchResult.LaunchFailedRomNotFound
             val fileRomProcessor = romFileProcessorFactory.getFileRomProcessorForDocument(fileRomDocument)
-            val romUri = fileRomProcessor?.getRealRomUri(rom)?.await() ?: throw RomLoadException("Unsupported ROM file extension: ${fileRomDocument.extension}")
+            val romUri = fileRomProcessor?.getRealRomUri(rom) ?: return@withContext RomLaunchResult.LaunchFailedRomNotSupported
 
             setupEmulator(getRomEmulatorConfiguration(rom))
 
@@ -107,6 +104,8 @@ class AndroidEmulatorManager(
                 is RomGbaSlotConfig.GbaRom -> MelonEmulator.GbaSlotType.GBA_ROM
                 RomGbaSlotConfig.MemoryExpansion -> MelonEmulator.GbaSlotType.MEMORY_EXPANSION
                 RomGbaSlotConfig.RumblePak -> MelonEmulator.GbaSlotType.RUMBLE_PAK
+                RomGbaSlotConfig.MotionPakHomebrew -> MelonEmulator.GbaSlotType.MOTION_PAK_HOMEBREW
+                RomGbaSlotConfig.MotionPakRetail -> MelonEmulator.GbaSlotType.MOTION_PAK_RETAIL
             }
 
             val loadResult = MelonEmulator.loadRom(
@@ -208,6 +207,10 @@ class AndroidEmulatorManager(
 
     override suspend fun loadState(saveStateFileUri: Uri): Boolean = withContext(Dispatchers.IO) {
         MelonEmulator.loadState(saveStateFileUri)
+    }
+
+    override suspend fun takeScreenshot(): Boolean = withContext(Dispatchers.IO) {
+        MelonEmulator.takeScreenshot()
     }
 
     override fun stopEmulator() {
